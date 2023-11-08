@@ -58,6 +58,7 @@ class ISA : public BaseISA
             SegAttr csAttr, SegAttr ssAttr, RFLAGS rflags);
 
     std::string vendorString;
+    bool fuzz_TSC;
 
   public:
     void clear() override;

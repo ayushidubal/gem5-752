@@ -54,3 +54,5 @@ class X86ISA(BaseISA):
     vendor_string = Param.String(
         "HygonGenuine", "Vendor string for CPUID instruction"
     )
+
+    fuzz_TSC = Param.Bool(False)

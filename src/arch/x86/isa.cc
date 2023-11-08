@@ -166,6 +166,8 @@ ISA::ISA(const X86ISAParams &p) : BaseISA(p), vendorString(p.vendor_string)
     _regClasses.push_back(&miscRegClass);
 
     clear();
+
+    fuzz_TSC = p.fuzz_TSC;
 }
 
 static void
@@ -219,6 +221,9 @@ RegVal
 ISA::readMiscReg(RegIndex idx)
 {
     if (idx == misc_reg::Tsc) {
+        // rounding if fuzz_TSC is set
+        if (fuzz_TSC == true)
+            return ((int)((regVal[misc_reg::Tsc] + tc->getCpuPtr()->curCycle()+ 50)/100)*100.0);
         return regVal[misc_reg::Tsc] + tc->getCpuPtr()->curCycle();
     }
 
