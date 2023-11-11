@@ -30,8 +30,8 @@
 #define __ARCH_X86_ISA_HH__
 
 #include <iostream>
-#include <string>
 #include <random>  // Include the random header
+#include <string>
 
 #include "arch/generic/isa.hh"
 #include "arch/x86/cpuid.hh"

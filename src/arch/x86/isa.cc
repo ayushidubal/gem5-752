@@ -154,10 +154,10 @@ RegClass matRegClass(MatRegClass, MatRegClassName, 1, debug::MatRegs);
 } // anonymous namespace
 
 ISA::ISA(const X86ISAParams &p)
-    : BaseISA(p), 
+    : BaseISA(p),
       fuzz_TSC(p.fuzz_TSC),
-      accShift(CACHE_MISS_LATENCY), 
-      generator(std::random_device()()), 
+      accShift(CACHE_MISS_LATENCY),
+      generator(std::random_device()()),
       cpuid(new X86CPUID(p.vendor_string, p.name_string))
 {
     cpuid->addStandardFunc(FamilyModelStepping, p.FamilyModelStepping);
@@ -231,19 +231,19 @@ ISA::readMiscRegNoEffect(RegIndex idx) const
     return regVal[idx];
 }
 
-RegVal 
-ISA::TSC_fuzz(RegVal originalTSC) 
+RegVal
+ISA::TSC_fuzz(RegVal originalTSC)
 {
     // Introduce random shift
     std::uniform_int_distribution<uint64_t> distribution(0, accShift);
     uint64_t shift = distribution(generator);
     accShift -= shift;
-    
+
     // Randomly remove one cache miss latency with some probability
     if (std::bernoulli_distribution(0.2)(generator)) {
         shift -= 1;
     }
-    
+
     // Return the fuzzed TSC value
     return originalTSC - shift;
 }
@@ -254,26 +254,28 @@ ISA::readMiscReg(RegIndex idx)
 {
     if (idx == misc_reg::Tsc) {
 
-	// If fuzzing enabled (i.e., fuzz_TSC set)
+        // If fuzzing enabled (i.e., fuzz_TSC set)
         if (fuzz_TSC) {
- 
-            RegVal originalTSC = regVal[misc_reg::Tsc] + tc->getCpuPtr()->curCycle();
 
-	    // Fuzzing mechanism #1: Rounding to nearest 100
+            RegVal originalTSC =
+                regVal[misc_reg::Tsc] + tc->getCpuPtr()->curCycle();
+
+            // Fuzzing mechanism #1: Rounding to nearest 100
             // RegVal fuzzedTSC1 = ((originalTSC + 50) / 100) * 100;
 
-	    // Fuzzing mechanism #2: Based on threshold probability remove one cache 
-	    // miss latency from the returned count, keep track of that amount, and 
-	    // return it back gradually across later invocations)
+            // Fuzzing mechanism #2: Based on threshold probability
+            // remove one cache miss latency from the returned count,
+            // keep track of that amount, and return it back gradually
+            // across later invocations)
             RegVal fuzzedTSC2 = TSC_fuzz(originalTSC);
             accShift += originalTSC - fuzzedTSC2;
- 
+
             return fuzzedTSC2;
 
-        } 
-	else {
+        }
+        else {
             return regVal[misc_reg::Tsc] + tc->getCpuPtr()->curCycle();
-	}
+        }
     }
 
     if (idx == misc_reg::Fsw) {

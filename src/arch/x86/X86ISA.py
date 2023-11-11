@@ -126,6 +126,4 @@ class X86ISA(BaseISA):
     )
 
     # Enabling/disabling TSC fuzzing
-    fuzz_TSC = Param.Bool(
-        True, "Enable or disable fuzzing"
-    )
+    fuzz_TSC = Param.Bool(True, "Enable or disable fuzzing")
