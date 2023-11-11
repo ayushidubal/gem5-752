@@ -31,6 +31,7 @@
 
 #include <iostream>
 #include <string>
+#include <random>  // Include the random header
 
 #include "arch/generic/isa.hh"
 #include "arch/x86/cpuid.hh"
@@ -60,6 +61,14 @@ class ISA : public BaseISA
 
     std::string vendorString;
 
+    // Records the value of fuzz_TSC flag
+    bool fuzz_TSC;
+
+    // Variables to track cycle shift
+    uint64_t accShift;
+    std::mt19937 generator;
+    std::random_device rd;
+
   public:
     void clear() override;
 
@@ -75,6 +84,8 @@ class ISA : public BaseISA
 
     RegVal readMiscRegNoEffect(RegIndex idx) const override;
     RegVal readMiscReg(RegIndex idx) override;
+    RegVal TSC_fuzz(RegVal originalTSC); // My TSC fuzzing fn
+
 
     void setMiscRegNoEffect(RegIndex idx, RegVal val) override;
     void setMiscReg(RegIndex idx, RegVal val) override;
