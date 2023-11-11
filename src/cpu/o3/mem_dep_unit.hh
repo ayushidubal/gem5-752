@@ -161,6 +161,15 @@ class MemDepUnit
     /** Debugging function to dump the lists of instructions. */
     void dumpLists();
 
+    // Insert branch when dispatched
+    void insertBranch(const DynInstPtr &inst);
+ 
+    // Remove branch when squashed
+    void removeBranch(const DynInstPtr &inst);
+
+    // Resolve and remove when executed
+    void resolveBranch(const DynInstPtr &inst);
+
   private:
 
     /** Completes a memory instruction. */
@@ -277,6 +286,13 @@ class MemDepUnit
          *  store. */
         statistics::Scalar conflictingStores;
     } stats;
+
+    // To pass the BaseO3CPUParams argument flag
+    bool delayCtrlSpecLoad;
+
+    // TO track seqNum of outstanding branches
+    std::set<uint64_t> outstandingBranches;
+
 };
 
 } // namespace o3

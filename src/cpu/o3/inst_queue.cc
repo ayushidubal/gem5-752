@@ -597,6 +597,10 @@ InstructionQueue::insert(const DynInstPtr &new_inst)
         addIfReady(new_inst);
     }
 
+    // Insert branch
+    if (new_inst->isCondCtrl())
+        memDepUnit[new_inst->threadNumber].insertBranch(new_inst);
+
     ++iqStats.instsAdded;
 
     count[new_inst->threadNumber]++;
@@ -967,6 +971,10 @@ InstructionQueue::wakeDependents(const DynInstPtr &completed_inst)
 {
     int dependents = 0;
 
+    // Resolve branch
+    if (completed_inst->isCondCtrl())
+        memDepUnit[completed_inst->threadNumber].resolveBranch(completed_inst);
+
     // The instruction queue here takes care of both floating and int ops
     if (completed_inst->isFloating()) {
         iqIOStats.fpInstQueueWakeupAccesses++;
@@ -1197,6 +1205,11 @@ InstructionQueue::doSquash(ThreadID tid)
            (*squash_it)->seqNum > squashedSeqNum[tid]) {
 
         DynInstPtr squashed_inst = (*squash_it);
+
+	// Remove branch
+        if (squashed_inst->isCondCtrl())
+            memDepUnit[squashed_inst->threadNumber].removeBranch(squashed_inst);
+
         if (squashed_inst->isFloating()) {
             iqIOStats.fpInstQueueWrites++;
         } else if (squashed_inst->isVector()) {
