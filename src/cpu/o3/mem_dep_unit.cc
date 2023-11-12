@@ -612,8 +612,8 @@ MemDepUnit::moveToReady(MemDepEntryPtr &woken_inst_entry)
     // Compare the instruction's seqNum to the oldest unresolved branch
     if (!outstandingBranches.empty() && woken_inst_entry->inst->seqNum >= *outstandingBranches.begin()) {
         for (auto seq_it = outstandingBranches.begin(); seq_it != outstandingBranches.end(); seq_it++) {
-            if (memDepHash.find(seq_it).testTaint() == true) {
-                inst_ptr.setTaint();
+            if (memDepHash.find(*seq_it)->second->inst->testTaint() == true) {
+                woken_inst_entry->inst->setTaint();
                 DPRINTF(MemDepUnit, "Outstanding branch found. Delaying the instruction [sn:%lli].\n", woken_inst_entry->inst->seqNum);
                 // Mark the instruction as waiting for a branch to resolve
                 woken_inst_entry->inst->setWaitForBranchResolution();
