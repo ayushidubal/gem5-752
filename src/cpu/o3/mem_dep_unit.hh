@@ -289,6 +289,7 @@ class MemDepUnit
 
     // To pass the BaseO3CPUParams argument flag
     bool delayCtrlSpecLoad;
+    bool delayTaintedLoad;
 
     // TO track seqNum of outstanding branches
     std::set<uint64_t> outstandingBranches;

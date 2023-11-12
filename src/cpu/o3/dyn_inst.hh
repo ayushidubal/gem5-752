@@ -187,7 +187,8 @@ class DynInst : public ExecContext, public RefCounted
         ReqMade,
         MemOpDone,
         HtmFromTransaction,
-	waitForBranchResolution,  // To mark an instruction instance as waiting for branches to resolve
+	    waitForBranchResolution,  // To mark an instruction instance as waiting for branches to resolve
+        Taint,  // To mark an instruction as tainted
         MaxFlags
     };
 
@@ -1158,9 +1159,7 @@ class DynInst : public ExecContext, public RefCounted
         setResult(reg->regClass(), val);
     }
 
-  
-  // Set, clear and test functions for the waitForBranchResolution flag
-  public:
+    // Set, clear and test functions for the waitForBranchResolution flag
     void setWaitForBranchResolution() {
         instFlags[waitForBranchResolution] = true; 
     }
@@ -1169,6 +1168,17 @@ class DynInst : public ExecContext, public RefCounted
     }
     bool testWaitForBranchResolution() {
         return instFlags[waitForBranchResolution]; 
+    }
+
+    // Set, clear and test functions for the Taint flag
+    void setTaint() {
+        instFlags[Taint] = true; 
+    }
+    void clearTaint() {
+        instFlags[Taint] = false;
+    }
+    bool testTaint() {
+        return instFlags[Taint]; 
     }
 };
 

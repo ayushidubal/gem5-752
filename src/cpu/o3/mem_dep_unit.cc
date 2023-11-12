@@ -61,7 +61,7 @@ MemDepUnit::MemDepUnit(const BaseO3CPUParams &params)
       iqPtr(NULL),
       stats(nullptr),
       delayCtrlSpecLoad(params.delayCtrlSpecLoad)  // Copy flag value from BaseO3CPUParams
-
+      delayTaintedLoad(params.delayTaintedLoad)
 {
     DPRINTF(MemDepUnit, "Creating MemDepUnit object.\n");
 }
@@ -611,11 +611,15 @@ MemDepUnit::moveToReady(MemDepEntryPtr &woken_inst_entry)
 
     // Compare the instruction's seqNum to the oldest unresolved branch
     if (!outstandingBranches.empty() && woken_inst_entry->inst->seqNum >= *outstandingBranches.begin()) {
-        DPRINTF(MemDepUnit, "Outstanding branch found. Delaying the instruction [sn:%lli].\n", woken_inst_entry->inst->seqNum);
-
-        // Mark the instruction as waiting for a branch to resolve
-        woken_inst_entry->inst->setWaitForBranchResolution();
-        return; 
+        for (auto seq_it = outstandingBranches.begin(); seq_it != outstandingBranches.end(); seq_it++) {
+            if (memDepHash.find(seq_it)->taint == true) {
+                inst_ptr->setTaint;
+                DPRINTF(MemDepUnit, "Outstanding branch found. Delaying the instruction [sn:%lli].\n", woken_inst_entry->inst->seqNum);
+                // Mark the instruction as waiting for a branch to resolve
+                woken_inst_entry->inst->setWaitForBranchResolution();
+                return; 
+            }
+        }
     }
 
     DPRINTF(MemDepUnit, "No outstanding branches. Proceeding normally.\n");
@@ -678,10 +682,9 @@ MemDepUnit::resolveBranch(const DynInstPtr &inst)
 
             // Check if the instruction is waiting for a branch [FIXME: Is this eligibility conditon reqd]
             if (inst_ptr->testWaitForBranchResolution() && /* eligibility conditon (?) --> */ inst_ptr->seqNum >= inst->seqNum) {
-
                 MemDepEntryPtr inst_entry = findInHash(inst_ptr);
                 moveToReady(inst_entry); // Wake up
-		inst_ptr->clearWaitForBranchResolution(); // Clear flag
+		        inst_ptr->clearWaitForBranchResolution(); // Clear flag
                 outstandingBranches.erase(inst_ptr->seqNum); // Remove branch from set
             }
         }

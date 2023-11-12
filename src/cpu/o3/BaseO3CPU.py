@@ -195,3 +195,6 @@ class BaseO3CPU(BaseCPU):
 
     # Flag to control delaying control speculative loads
     delayCtrlSpecLoad = Param.Bool(False, "Delay control speculative loads")
+
+    # Flay to control tainted load delay
+    delayTaintedLoad = Param.Bool(False, "Delay tainted loads")

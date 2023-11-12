@@ -1053,6 +1053,9 @@ InstructionQueue::wakeDependents(const DynInstPtr &completed_inst)
             // graph entries would need to hold the src_reg_idx.
             dep_inst->markSrcRegReady();
 
+            // Copy taint bit of completed inst to dependent inst
+            dep_inst->Taint = completed_inst->Taint;
+
             addIfReady(dep_inst);
 
             dep_inst = dependGraph.pop(dest_reg->flatIndex());
