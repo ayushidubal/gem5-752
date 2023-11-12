@@ -60,7 +60,7 @@ MemDepUnit::MemDepUnit(const BaseO3CPUParams &params)
               params.LFSTSize),
       iqPtr(NULL),
       stats(nullptr),
-      delayCtrlSpecLoad(params.delayCtrlSpecLoad)  // Copy flag value from BaseO3CPUParams
+      delayCtrlSpecLoad(params.delayCtrlSpecLoad),  // Copy flag value from BaseO3CPUParams
       delayTaintedLoad(params.delayTaintedLoad)
 {
     DPRINTF(MemDepUnit, "Creating MemDepUnit object.\n");
@@ -612,12 +612,12 @@ MemDepUnit::moveToReady(MemDepEntryPtr &woken_inst_entry)
     // Compare the instruction's seqNum to the oldest unresolved branch
     if (!outstandingBranches.empty() && woken_inst_entry->inst->seqNum >= *outstandingBranches.begin()) {
         for (auto seq_it = outstandingBranches.begin(); seq_it != outstandingBranches.end(); seq_it++) {
-            if (memDepHash.find(seq_it)->taint == true) {
-                inst_ptr->setTaint;
+            if (memDepHash.find(seq_it).testTaint() == true) {
+                inst_ptr.setTaint();
                 DPRINTF(MemDepUnit, "Outstanding branch found. Delaying the instruction [sn:%lli].\n", woken_inst_entry->inst->seqNum);
                 // Mark the instruction as waiting for a branch to resolve
                 woken_inst_entry->inst->setWaitForBranchResolution();
-                return; 
+                return;
             }
         }
     }
@@ -672,7 +672,7 @@ MemDepUnit::removeBranch(const DynInstPtr &inst)
     outstandingBranches.erase(inst->seqNum);
 }
 
-void 
+void
 MemDepUnit::resolveBranch(const DynInstPtr &inst)
 {
     // Iterate through the instruction list and look for

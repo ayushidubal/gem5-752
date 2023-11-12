@@ -1054,11 +1054,11 @@ InstructionQueue::wakeDependents(const DynInstPtr &completed_inst)
             dep_inst->markSrcRegReady();
 
             // Copy taint bit of completed inst to dependent inst
-            if dep_inst.testTaint()
+            if (dep_inst.testTaint())
                 completed_inst.setTaint();
             else
                 completed_inst.clearTaint();
-            
+
             addIfReady(dep_inst);
 
             dep_inst = dependGraph.pop(dest_reg->flatIndex());
