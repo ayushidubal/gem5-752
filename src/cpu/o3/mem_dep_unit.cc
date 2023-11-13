@@ -683,10 +683,10 @@ MemDepUnit::resolveBranch(const DynInstPtr &inst)
         for (auto inst_ptr : instList[tid]) {
 
             // Check if the instruction is waiting for a branch [FIXME: Is this eligibility conditon reqd]
-            if (inst_ptr->testWaitForBranchResolution() && /* eligibility conditon (?) --> */ inst_ptr->seqNum >= inst->seqNum) {
+            if (inst_ptr->testWaitForBranchResolution() /*&& eligibility conditon (?) -->  inst_ptr->seqNum >= inst->seqNum*/) {
                 MemDepEntryPtr inst_entry = findInHash(inst_ptr);
                 moveToReady(inst_entry); // Wake up
-		        inst_ptr->clearWaitForBranchResolution(); // Clear flag
+		inst_ptr->clearWaitForBranchResolution(); // Clear flag
                 outstandingBranches.erase(inst_ptr->seqNum); // Remove branch from set
             }
         }
