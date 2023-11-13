@@ -606,9 +606,6 @@ MemDepUnit::moveToReady(MemDepEntryPtr &woken_inst_entry)
     DPRINTF(MemDepUnit, "Adding instruction [sn:%lli] "
             "to the ready list.\n", woken_inst_entry->inst->seqNum);
 
-
-    DPRINTF(MemDepUnit, "Checking for outstanding branches...\n");
-
     // Compare the instruction's seqNum to the oldest unresolved branch
     if (delayCtrlSpecLoad && !outstandingBranches.empty() && woken_inst_entry->inst->seqNum >= *outstandingBranches.begin()) {
         if (delayTaintedLoad) {
@@ -617,13 +614,12 @@ MemDepUnit::moveToReady(MemDepEntryPtr &woken_inst_entry)
                 auto memDepEntryIt = memDepHash.find(*seq_it);
                 if (memDepEntryIt != memDepHash.end() && memDepEntryIt->second->inst->testTaint()) {
                     woken_inst_entry->inst->setTaint();
-                    DPRINTF(MemDepUnit, "Outstanding branch found. Delaying the instruction [sn:%lli].\n", woken_inst_entry->inst->seqNum);
-                    // Mark the instruction as waiting for a branch to resolve
-                    woken_inst_entry->inst->setWaitForBranchResolution();
-                    return;
+                    break;
                 }
             }
 	}
+        // Mark the instruction as waiting for a branch to resolve
+        woken_inst_entry->inst->setWaitForBranchResolution();
 	return;
     }
 
