@@ -603,13 +603,14 @@ MemDepUnit::findInHash(const DynInstConstPtr &inst)
 void
 MemDepUnit::moveToReady(MemDepEntryPtr &woken_inst_entry)
 {
-    DPRINTF(MemDepUnit, "Adding instruction [sn:%lli] "
-            "to the ready list.\n", woken_inst_entry->inst->seqNum);
+    DPRINTF(MemDepUnit, "Adding instruction [sn:%lli] to the ready list.\n", woken_inst_entry->inst->seqNum);
 
     // Compare the instruction's seqNum to the oldest unresolved branch
     if (delayCtrlSpecLoad && !outstandingBranches.empty() && woken_inst_entry->inst->seqNum >= *outstandingBranches.begin()) {
+        DPRINTF(MemDepUnit, "Dependent! [sn:%lli]\n", woken_inst_entry->inst->seqNum);
         if (delayTaintedLoad) {
             for (auto seq_it = outstandingBranches.begin(); seq_it != outstandingBranches.end(); seq_it++) {
+                DPRINTF(MemDepUnit, "Tainted! [sn:%lli]\n", woken_inst_entry->inst->seqNum);
                 // if (memDepHash.find(*seq_it)->second->inst->testTaint() == true) {
                 auto memDepEntryIt = memDepHash.find(*seq_it);
                 if (memDepEntryIt != memDepHash.end() && memDepEntryIt->second->inst->testTaint()) {
