@@ -561,6 +561,10 @@ class InstructionQueue
         statistics::Scalar fpAluAccesses;
         statistics::Scalar vecAluAccesses;
     } iqIOStats;
+
+   private:
+    bool delayCtrlSpecLoad;
+    bool delayTaintedLoad;
 };
 
 } // namespace o3

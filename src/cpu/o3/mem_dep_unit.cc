@@ -610,18 +610,21 @@ MemDepUnit::moveToReady(MemDepEntryPtr &woken_inst_entry)
     DPRINTF(MemDepUnit, "Checking for outstanding branches...\n");
 
     // Compare the instruction's seqNum to the oldest unresolved branch
-    if (!outstandingBranches.empty() && woken_inst_entry->inst->seqNum >= *outstandingBranches.begin()) {
-        for (auto seq_it = outstandingBranches.begin(); seq_it != outstandingBranches.end(); seq_it++) {
-            // if (memDepHash.find(*seq_it)->second->inst->testTaint() == true) {
-            auto memDepEntryIt = memDepHash.find(*seq_it);
-            if (memDepEntryIt != memDepHash.end() && memDepEntryIt->second->inst->testTaint()) {
-                woken_inst_entry->inst->setTaint();
-                DPRINTF(MemDepUnit, "Outstanding branch found. Delaying the instruction [sn:%lli].\n", woken_inst_entry->inst->seqNum);
-                // Mark the instruction as waiting for a branch to resolve
-                woken_inst_entry->inst->setWaitForBranchResolution();
-                return;
+    if (delayCtrlSpecLoad && !outstandingBranches.empty() && woken_inst_entry->inst->seqNum >= *outstandingBranches.begin()) {
+        if (delayTaintedLoad) {
+            for (auto seq_it = outstandingBranches.begin(); seq_it != outstandingBranches.end(); seq_it++) {
+                // if (memDepHash.find(*seq_it)->second->inst->testTaint() == true) {
+                auto memDepEntryIt = memDepHash.find(*seq_it);
+                if (memDepEntryIt != memDepHash.end() && memDepEntryIt->second->inst->testTaint()) {
+                    woken_inst_entry->inst->setTaint();
+                    DPRINTF(MemDepUnit, "Outstanding branch found. Delaying the instruction [sn:%lli].\n", woken_inst_entry->inst->seqNum);
+                    // Mark the instruction as waiting for a branch to resolve
+                    woken_inst_entry->inst->setWaitForBranchResolution();
+                    return;
+                }
             }
-        }
+	}
+	return;
     }
 
     DPRINTF(MemDepUnit, "No outstanding branches. Proceeding normally.\n");

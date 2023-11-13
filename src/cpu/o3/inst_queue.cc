@@ -95,7 +95,9 @@ InstructionQueue::InstructionQueue(CPU *cpu_ptr, IEW *iew_ptr,
       totalWidth(params.issueWidth),
       commitToIEWDelay(params.commitToIEWDelay),
       iqStats(cpu, totalWidth),
-      iqIOStats(cpu)
+      iqIOStats(cpu),
+      delayCtrlSpecLoad(params.delayCtrlSpecLoad),  // Copy flag value from BaseO3CPUParams
+      delayTaintedLoad(params.delayTaintedLoad)
 {
     assert(fuPool);
 
@@ -598,7 +600,7 @@ InstructionQueue::insert(const DynInstPtr &new_inst)
     }
 
     // Insert branch
-    if (new_inst->isCondCtrl())
+    if (delayCtrlSpecLoad && new_inst->isCondCtrl())
         memDepUnit[new_inst->threadNumber].insertBranch(new_inst);
 
     ++iqStats.instsAdded;
@@ -972,7 +974,7 @@ InstructionQueue::wakeDependents(const DynInstPtr &completed_inst)
     int dependents = 0;
 
     // Resolve branch
-    if (completed_inst->isCondCtrl())
+    if (delayCtrlSpecLoad && completed_inst->isCondCtrl())
         memDepUnit[completed_inst->threadNumber].resolveBranch(completed_inst);
 
     // The instruction queue here takes care of both floating and int ops
@@ -1054,10 +1056,12 @@ InstructionQueue::wakeDependents(const DynInstPtr &completed_inst)
             dep_inst->markSrcRegReady();
 
             // Copy taint bit of completed inst to dependent inst
-            if (dep_inst->testTaint())
-                completed_inst->setTaint();
-            else
-                completed_inst->clearTaint();
+	    if (delayTaintedLoad) {
+                if (dep_inst->testTaint())
+                    completed_inst->setTaint();
+                else
+                    completed_inst->clearTaint();
+            }
 
             addIfReady(dep_inst);
 
@@ -1213,7 +1217,7 @@ InstructionQueue::doSquash(ThreadID tid)
         DynInstPtr squashed_inst = (*squash_it);
 
 	// Remove branch
-        if (squashed_inst->isCondCtrl())
+        if (delayCtrlSpecLoad && squashed_inst->isCondCtrl())
             memDepUnit[squashed_inst->threadNumber].removeBranch(squashed_inst);
 
         if (squashed_inst->isFloating()) {
