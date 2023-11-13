@@ -192,6 +192,3 @@ class BaseO3CPU(BaseCPU):
         TournamentBP(numThreads=Parent.numThreads), "Branch Predictor"
     )
     needsTSO = Param.Bool(False, "Enable TSO Memory model")
-
-    # Flag to control delaying control speculative loads
-    delayCtrlSpecLoad = Param.Bool(False, "Delay control speculative loads")

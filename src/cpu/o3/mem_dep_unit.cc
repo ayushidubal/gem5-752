@@ -59,9 +59,7 @@ MemDepUnit::MemDepUnit(const BaseO3CPUParams &params)
       depPred(params.store_set_clear_period, params.SSITSize,
               params.LFSTSize),
       iqPtr(NULL),
-      stats(nullptr),
-      delayCtrlSpecLoad(params.delayCtrlSpecLoad)  // Copy flag value from BaseO3CPUParams
-
+      stats(nullptr)
 {
     DPRINTF(MemDepUnit, "Creating MemDepUnit object.\n");
 }
@@ -606,20 +604,6 @@ MemDepUnit::moveToReady(MemDepEntryPtr &woken_inst_entry)
     DPRINTF(MemDepUnit, "Adding instruction [sn:%lli] "
             "to the ready list.\n", woken_inst_entry->inst->seqNum);
 
-
-    DPRINTF(MemDepUnit, "Checking for outstanding branches...\n");
-
-    // Compare the instruction's seqNum to the oldest unresolved branch
-    if (!outstandingBranches.empty() && woken_inst_entry->inst->seqNum >= *outstandingBranches.begin()) {
-        DPRINTF(MemDepUnit, "Outstanding branch found. Delaying the instruction [sn:%lli].\n", woken_inst_entry->inst->seqNum);
-
-        // Mark the instruction as waiting for a branch to resolve
-        woken_inst_entry->inst->setWaitForBranchResolution();
-        return; 
-    }
-
-    DPRINTF(MemDepUnit, "No outstanding branches. Proceeding normally.\n");
-
     assert(!woken_inst_entry->squashed);
 
     iqPtr->addReadyMemInst(woken_inst_entry->inst);
@@ -654,38 +638,6 @@ MemDepUnit::dumpLists()
 #ifdef GEM5_DEBUG
     cprintf("Memory dependence entries: %i\n", MemDepEntry::memdep_count);
 #endif
-}
-
-void
-MemDepUnit::insertBranch(const DynInstPtr &inst)
-{
-    outstandingBranches.insert(inst->seqNum);
-}
-
-void
-MemDepUnit::removeBranch(const DynInstPtr &inst)
-{
-    outstandingBranches.erase(inst->seqNum);
-}
-
-void 
-MemDepUnit::resolveBranch(const DynInstPtr &inst)
-{
-    // Iterate through the instruction list and look for
-    // waiting instructions that can be woken up.
-    for (ThreadID tid = 0; tid < MaxThreads; tid++) {
-        for (auto inst_ptr : instList[tid]) {
-
-            // Check if the instruction is waiting for a branch [FIXME: Is this eligibility conditon reqd]
-            if (inst_ptr->testWaitForBranchResolution() && /* eligibility conditon (?) --> */ inst_ptr->seqNum >= inst->seqNum) {
-
-                MemDepEntryPtr inst_entry = findInHash(inst_ptr);
-                moveToReady(inst_entry); // Wake up
-		inst_ptr->clearWaitForBranchResolution(); // Clear flag
-                outstandingBranches.erase(inst_ptr->seqNum); // Remove branch from set
-            }
-        }
-    }
 }
 
 } // namespace o3

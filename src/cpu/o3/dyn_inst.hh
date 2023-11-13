@@ -187,7 +187,6 @@ class DynInst : public ExecContext, public RefCounted
         ReqMade,
         MemOpDone,
         HtmFromTransaction,
-	waitForBranchResolution,  // To mark an instruction instance as waiting for branches to resolve
         MaxFlags
     };
 
@@ -1156,19 +1155,6 @@ class DynInst : public ExecContext, public RefCounted
             return;
         cpu->setReg(reg, val, threadNumber);
         setResult(reg->regClass(), val);
-    }
-
-  
-  // Set, clear and test functions for the waitForBranchResolution flag
-  public:
-    void setWaitForBranchResolution() {
-        instFlags[waitForBranchResolution] = true; 
-    }
-    void clearWaitForBranchResolution() {
-        instFlags[waitForBranchResolution] = false;
-    }
-    bool testWaitForBranchResolution() {
-        return instFlags[waitForBranchResolution]; 
     }
 };
 
