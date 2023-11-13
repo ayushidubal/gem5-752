@@ -156,7 +156,7 @@ RegClass matRegClass(MatRegClass, MatRegClassName, 1, debug::MatRegs);
 ISA::ISA(const X86ISAParams &p)
     : BaseISA(p),
       fuzz_TSC(p.fuzz_TSC),
-      accShift(CACHE_MISS_LATENCY),
+      accShift(0),
       generator(std::random_device()()),
       cpuid(new X86CPUID(p.vendor_string, p.name_string))
 {
@@ -234,18 +234,16 @@ ISA::readMiscRegNoEffect(RegIndex idx) const
 RegVal
 ISA::TSC_fuzz(RegVal originalTSC)
 {
-    // Introduce random shift
     std::uniform_int_distribution<uint64_t> distribution(0, accShift);
     uint64_t shift = distribution(generator);
-    accShift -= shift;
 
-    // Randomly remove one cache miss latency with some probability
-    if (std::bernoulli_distribution(0.2)(generator)) {
-        shift -= 1;
+    // Randomly remove one cache miss latency with probability of 0.3
+    if (std::bernoulli_distribution(0.3)(generator) && accShift < 0.3 * CACHE_MISS_LATENCY /* Limiting the bias */) {
+        shift = -1 * CACHE_MISS_LATENCY;
     }
 
     // Return the fuzzed TSC value
-    return originalTSC - shift;
+    return originalTSC + shift;
 }
 
 
