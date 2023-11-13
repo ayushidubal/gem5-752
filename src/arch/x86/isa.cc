@@ -234,11 +234,11 @@ ISA::readMiscRegNoEffect(RegIndex idx) const
 RegVal
 ISA::TSC_fuzz(RegVal originalTSC)
 {
-    std::uniform_int_distribution<uint64_t> distribution(0, accShift);
+    std::uniform_int_distribution<uint64_t> distribution(10, accShift);
     uint64_t shift = distribution(generator);
 
-    // Randomly remove one cache miss latency with probability of 0.3
-    if (std::bernoulli_distribution(0.3)(generator) && accShift < 0.3 * CACHE_MISS_LATENCY /* Limiting the bias */) {
+    // Randomly remove one cache miss latency with probability of 0.25
+    if (std::bernoulli_distribution(0.25)(generator) && accShift < 0.25 * CACHE_MISS_LATENCY /* Limiting the bias */) {
         shift = -1 * CACHE_MISS_LATENCY;
     }
 
